@@ -23,8 +23,23 @@ readData filepath = do
     let fileStrLines = lines file
     return fileStrLines
 
+mainLoop :: IO ()
+mainLoop = do
+    putStrLn "Enter [ 1 | 2 | q ]: "
+    i <- getChar
+    _ <- getChar                    -- ingone '\n' whitch for some reason are reading 
+    chInputFirst i
+chInputFirst :: Char -> IO()
+chInputFirst i 
+    | i == 'q' = return ()
+    | i == '1' = putStrLn "First Option\n" >> mainLoop
+    | i == '2' = putStrLn "Second Option\n" >> mainLoop
+    | otherwise = putStrLn "Wrong Input\n" >> mainLoop
+
+
 main :: IO ()
 main = do
-    flines <- readData "CustomerData.txt"
-    mapM_ putStrLn (stripStrList flines)
+    strLines <- readData "CustomerData.txt"
+    -- mapM_ putStrLn (stripStrList strLines)
+    mainLoop
 
