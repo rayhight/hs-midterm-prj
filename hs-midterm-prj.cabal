@@ -63,7 +63,7 @@ executable hs-midterm-prj
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1, split ^>=0.2.5
+    build-depends:    base ^>=4.18.2.0, split ^>=0.2.5
 
     -- Directories containing source files.
     hs-source-dirs:   app
