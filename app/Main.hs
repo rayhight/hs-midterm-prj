@@ -1,36 +1,26 @@
 module Main where
 import System.IO ()
+import Data.List ()
 
-type CustomerId     = Int
-type FirstName      = String
-type LastName       = String
-type Age            = Int
-type Email          = String
-type Balance        = Double
-type RiskNote       = String
-type Customer       = (CustomerId, FirstName, LastName, Age, Email, Balance, RiskNote)
-type CustomerList   = [Customer]
+data Customer = Customer {customerId :: Int, 
+                            firstName :: String, 
+                            lastName :: String, 
+                            age :: Int, 
+                            email :: String,
+                            balance :: Float, 
+                            riskNote :: String} 
+                            deriving (Show, Read)
+                            
+type CustomerList = [Customer]
 
-stripStr :: String -> String
-stripStr xs = [ x | x <- xs, x `notElem` "{}[],?!-:;\n\r\"" ]
-
-stripStrList :: [String] -> [String]
-stripStrList = map stripStr
-
-readData :: FilePath -> IO [String]
-readData filepath = do
-    file <- readFile filepath
-    let fileStrLines = lines file
-    return fileStrLines
-
-mainLoop :: IO ()
-mainLoop = do
-    putStrLn "\n\
+mainMenu :: IO ()
+mainMenu = do
+    putStrLn "\
     \ ________________________________\n\
     \|Choose any option:              |\n\
     \|    1.List all the Customers    |\n\
     \|<<<<<Customer Data Analysis>>>>>|\n\
-    \|  Customer Avarage:             |\n\
+    \|    2.Customer Avarage:         |\n\
     \|      2.1 Age                   |\n\
     \|      2.2 Balance               |\n\
     \|      2.3 Risk (Floar)          |\n\
@@ -45,16 +35,50 @@ mainLoop = do
     chInputFirst i
 
 chInputFirst :: Char -> IO()
-chInputFirst inputChar 
+chInputFirst inputChar
     | inputChar == 'q' = return ()
-    | inputChar == '1' = putStrLn "First Option\n" >> mainLoop
-    | inputChar == '2' = putStrLn "Second Option\n" >> mainLoop
-    | otherwise        = putStrLn "Wrong Input\n" >> mainLoop
+    | inputChar == '1' = putStrLn "First Option\n" >> mainMenu
+    | inputChar == '2' = putStrLn "Second Option\n" >> subMenu
+    | inputChar == '3' = putStrLn "Third Option\n" >> subMenu
+    | otherwise        = putStrLn "Wrong Input\n" >> mainMenu
 
+subMenu :: IO ()
+subMenu = do
+    putStrLn "\
+    \ ________________________________ \n\
+    \|                                |\n\
+    \|    Customer Avarage:           |\n\
+    \|      2.1 Age                   |\n\
+    \|      2.2 Balance               |\n\
+    \|      2.3 Risk (Floar)          |\n\
+    \|      2.4 Risk (Nominal/Enum)   |\n\
+    \|      2.5 Display N cusomers    |\n\
+    \|________________________________|"
+    i <-getChar
+    _ <-getChar
+    chInputSecond i
+
+chInputSecond :: Char -> IO()
+chInputSecond inputChar
+    | inputChar == 'b' = mainMenu
+    | inputChar == '1' = putStrLn "Second First Option\n" >> mainMenu
+    | inputChar == '2' = putStrLn "Second Second Option\n" >> mainMenu
+    | inputChar == '3' = putStrLn "Second Third Option\n" >> mainMenu
+    | inputChar == '4' = putStrLn "Second Fourth Option\n" >> mainMenu
+    | inputChar == '5' = putStrLn "Second Fifth Option\n" >> mainMenu
+    | otherwise        = putStrLn "Wrong Input\n" >> subMenu
+
+-- printCustomer :: Customer -> String
+-- printCustomer Customer = let str 
+
+strToCustomer :: String -> Customer
+strToCustomer str =
+    -- read ("Customer " ++ dropWhile (/= '{') str)
+    read (dropWhile (/= '{') str)
 
 main :: IO ()
 main = do
-    strLines <- readData "CustomerData.txt"
-    -- mapM_ putStrLn (stripStrList strLines)
-    mainLoop
-
+    strLines <- readFile "CustomerData.txt"
+    let customeList = map strToCustomer (lines strLines)
+    print customeList
+    -- mainMenu
