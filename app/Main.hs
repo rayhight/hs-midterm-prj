@@ -1,19 +1,10 @@
 module Main where
-import Debug.Trace
-import GHC.IO.FD (openFile)
-data Customer = Customer {customerId :: Int,
-                            firstName :: String,
-                            lastName :: String,
-                            age :: Int,
-                            email :: String,
-                            balance :: Float,
-                            riskNote :: String}
-                            deriving (Show, Read)
+import UserManagement
+import DataAnalysis
+import RiskManagement
 
-type CustomerList = [Customer]
-
-mainMenu :: IO ()
-mainMenu = do
+mainMenu :: CustomerList -> IO ()
+mainMenu c = do
     putStrLn "\
     \ ________________________________\n\
     \|Choose any option:              |\n\
@@ -22,83 +13,64 @@ mainMenu = do
     \|    2.Customer Avarage:         |\n\
     \|      2.1 Age                   |\n\
     \|      2.2 Balance               |\n\
-    \|      2.3 Risk (Floar)          |\n\
-    \|      2.4 Risk (Nominal/Enum)   |\n\
+    \|      2.3 Risk                  |\n\
+    \|      2.4 Risk Actual           |\n\
     \|      2.5 Display N cusomers    |\n\
     \|<<<<<<<<Risk Analysis>>>>>>>>>>>|\n\
     \|    3.List High Risk Customers  |\n\
     \|    4.Exit                      |\n\
     \|________________________________|"
     i <- getChar
-    _ <- getChar                    -- ingone '\n' whitch for some reason are reading 
-    chInputFirst i
+    _ <- getChar
+    chInputFirst i c
 
-chInputFirst :: Char -> IO()
-chInputFirst inputChar
-    | inputChar == 'q' = return ()
-    | inputChar == '1' = putStrLn "First Option\n" >> mainMenu
-    | inputChar == '2' = putStrLn "Second Option\n" >> subMenu
-    | inputChar == '3' = putStrLn "Third Option\n" >> subMenu
-    | otherwise        = putStrLn "Wrong Input\n" >> mainMenu
+chInputFirst :: Char -> CustomerList -> IO()
+chInputFirst inputChar c
+    | inputChar == 'q' || inputChar == 'e' || inputChar == '4' = return ()
+    | inputChar == '1' = putStrLn (conCustomerTable c) >> mainMenu c
+    | inputChar == '2' = putStrLn ""  >> subMenu c
+    | inputChar == '3' =
+        putStrLn  ("\n <<<<<<<<<<<<<<<<<<<<<<<<<DISPLAYING CUSTOMERS WITH \"RISK VALUE\" = HIGH>>>>>>>>>>>>>>>>>>>>>>>>> \n"
+                    ++ conCustomerTable (riskNoteFilter c "High")) >> mainMenu c
+    | otherwise        = putStrLn "Wrong Input\n" >> mainMenu c
 
-subMenu :: IO ()
-subMenu = do
+subMenu :: CustomerList -> IO ()
+subMenu c = do
     putStrLn "\
     \ ________________________________ \n\
     \|                                |\n\
     \|    Customer Avarage:           |\n\
     \|      2.1 Age                   |\n\
     \|      2.2 Balance               |\n\
-    \|      2.3 Risk (Floar)          |\n\
+    \|      2.3 Risk (Float)          |\n\
     \|      2.4 Risk (Nominal/Enum)   |\n\
     \|      2.5 Display N cusomers    |\n\
     \|________________________________|"
     i <-getChar
     _ <-getChar
-    chInputSecond i
+    chInputSecond i c
 
-chInputSecond :: Char -> IO()
-chInputSecond inputChar
-    | inputChar == 'b' = mainMenu
-    | inputChar == '1' = putStrLn "Second First Option\n" >> mainMenu
-    | inputChar == '2' = putStrLn "Second Second Option\n" >> mainMenu
-    | inputChar == '3' = putStrLn "Second Third Option\n" >> mainMenu
-    | inputChar == '4' = putStrLn "Second Fourth Option\n" >> mainMenu
-    | inputChar == '5' = putStrLn "Second Fifth Option\n" >> mainMenu
-    | otherwise        = putStrLn "Wrong Input\n" >> subMenu
-
--- strToCustomer :: String -> Customer
--- strToCustomer x = read ("Customer " ++ dropWhile (/= '{') x)
-
-formatId :: Int -> String
-formatId n
-    | n < 10    = "00" ++ show n
-    | n < 100   = "0" ++ show n
-    |otherwise  = show n
-
-formatStr :: String -> Int -> String
-formatStr s n
-    | ogl < fdl = s ++ replicate (fdl - ogl) ' '
-    | otherwise = s
-    where
-        ogl = length s
-        fdl = n
-
-printCustomer :: Customer ->  String
-printCustomer (Customer id fn ln ag em ba rs) =
-    "| "++
-    formatId id  ++ " | " ++
-    formatStr (fn ++ " " ++ ln) (length  "Customer Full Name ") ++ " | " ++
-    show ag ++ " | " ++
-    formatStr em 23 ++ " | " ++
-    formatStr (show ba) (length "Customer Balance ") ++ " | " ++
-    formatStr rs (length "Risk Note ") ++ " |"
-
+chInputSecond :: Char -> CustomerList -> IO()
+chInputSecond inputChar c
+    | inputChar == 'b' || inputChar == 'e' = mainMenu c
+    | inputChar == '1' = print (retriveAvarageInt c)>> subMenu c
+    | inputChar == '2' = print (retriveAvarageDouble c) >> subMenu c
+    | inputChar == '3' = print (retriveAvarageRisk c ) >> subMenu c
+    | inputChar == '4' = putStrLn (backToNominal $ retriveAvarageRisk c ) >> subMenu c
+    | inputChar == '5' = do
+        putStrLn "Enter the number of Customers?"
+        i <- getLine 
+        let n = read i::Int 
+        if n < length c && n > 0 
+            then do 
+                putStrLn "Enter threshold: "
+                t <- getLine
+                let tn = read t::Double
+                putStrLn (conCustomerTable $ sliceBackandSort (thresholdFilter c tn) n) >> subMenu c
+            else putStrLn "Wrong Input" >> subMenu c
+    | otherwise        = putStrLn "Wrong Input\n" >> subMenu c
 
 main :: IO ()
-main = do
-
-    str <- readFile "CustomerData.txt"
-    let customersList = read str :: [Customer]
-    mapM_ (putStrLn . printCustomer) customersList
-    mainMenu
+main = do 
+    customerList <- readDataToCList 
+    mainMenu customerList

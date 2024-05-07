@@ -1,4 +1,5 @@
 module RiskManagement where
+import UserManagement
 
--- someFunc3:: IO ()
--- someFunc3 = putStrLn "RiskManagement"
+thresholdFilter::CustomerList->Double->CustomerList
+thresholdFilter (x:xc) d = [x | x<-xc, balance x < d]

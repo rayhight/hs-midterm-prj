@@ -1,26 +1,44 @@
 module UserManagement where
--- import System.IO
--- import Data.List.Split
 
--- type customerId = Int
--- type firstName  = String
--- type lastName   = String
--- type age        = Int
--- type email      = String
--- type balance    = Double
--- type riskNote   = String
--- type Customer   = (customerId, firstName, lastName, age, email, balance, riskNote)
+data Customer = Customer {customerId :: Int, firstName :: String, lastName :: String, age :: Int,email :: String,balance :: Double, riskNote :: String} deriving (Show, Read)
 
--- getUSERS :: IO ()
--- getUSERS = do 
---     contents <- readFile "CustomerData.txt"
---     customerList = dataOrganizer contents
+type CustomerList = [Customer]
 
+formatId :: Int -> String
+formatId n
+    | n < 10    = "00" ++ show n
+    | n < 100   = "0" ++ show n
+    |otherwise  = show n
 
--- removePunc xs = [ x | x <- xs, not (x `elem` "{}[],?!-:;\'") ]
+formatStr :: String -> Int -> String
+formatStr s n
+    | ogl < fdl = s ++ replicate (fdl - ogl) ' '
+    | otherwise = s
+    where
+        ogl = length s
+        fdl = n
 
--- toStringList :: String -> [String]
--- toStringList = splitOn "Customer" (removePunc 
+conCustomerList :: Customer -> String
+conCustomerList (Customer id fn ln ag em ba rs) =
+    "| "++
+    formatId id ++ " | " ++
+    formatStr (fn ++ " " ++ ln) (length  "Customer Full Name ") ++ " | " ++
+    show ag ++ "  | " ++
+    formatStr em 26 ++ " | " ++
+    formatStr (show ba) (length "Customer Balance ") ++ " | " ++
+    formatStr rs (length "Risk Note ") ++ " |"
 
--- dataOrganizer :: String -> [Customer]
--- dataOrganizer customers = splitOn "Customer " Customer
+conCustomerTable :: CustomerList -> String
+conCustomerTable x = "\
+    \ _______________________________________________________________________________________________\n\
+    \| IDs | Customer Full Name  | Age | Customer Email Address     | Customer Balance  | Risk Note  |\n\
+    \|-----|---------------------|-----|----------------------------|-------------------|------------|\n"
+    ++ unlines str  ++
+    "|_______________________________________________________________________________________________|"
+    where str = map conCustomerList x
+
+readDataToCList::IO CustomerList
+readDataToCList = do 
+    str <- readFile "CustomerData.txt"
+    let customersList = read str :: [Customer]
+    return customersList
