@@ -3,20 +3,22 @@ module DataAnalysis where
 import Data.List (sortOn)
 import UserManagement
 
-riskNoteFilter :: CustomerList -> String -> CustomerList
-riskNoteFilter (x:xc) s = [x | x<-xc, riskNote x == s ]
-
-retriveAvarageInt :: CustomerList -> Int
-retriveAvarageInt c  = sum (map age c) `div` cl
+retriveAvarageInt :: CustomerList -> String
+retriveAvarageInt c =
+    let g = sum (map age c) `div` cl
+    in show g
     where cl = length c
 
-retriveAvarageDouble :: CustomerList -> Double
-retriveAvarageDouble c  = sum (map balance c) / cl
+
+retriveAvarageDouble :: CustomerList -> String
+retriveAvarageDouble c = 
+    let r = sum (map balance c) / cl
+    in show r
     where cl = fromIntegral $ length c
 
 retriveAvarageRisk :: CustomerList -> Double
 retriveAvarageRisk cs =
-    let rc = [if riskNote c == "High" then 3.0 else if riskNote c == "Low" then 1.0 else 2.0 | c <- cs]
+    let rc = [if riskNote c ==  "High" then 3.0 else if riskNote c == "Low" then 1.0 else 2.0 | c <- cs]
         ra = sum rc / fromIntegral (length rc)
     in ra
 
@@ -27,11 +29,9 @@ backToNominal d
     | d <= 3.0 && d >= 2.5 = "High"
     | otherwise = "Error"
 
-
-
 sliceBackandSort:: CustomerList -> Int -> CustomerList
-sliceBackandSort xs n = take n $ reverseCustomerList $ sortOn balance xs
+sliceBackandSort xs n = take n $ reqRevCL $ sortOn balance xs
 
-reverseCustomerList :: CustomerList -> CustomerList
-reverseCustomerList [] = []
-reverseCustomerList (x:xs) = reverseCustomerList xs ++ [x]
+reqRevCL :: [a] -> [a]
+reqRevCL [] = []
+reqRevCL (x:xs) = reqRevCL xs ++ [x]
